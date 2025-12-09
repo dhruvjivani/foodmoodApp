@@ -17,53 +17,74 @@ struct DailyLogListView: View {
         ["All"] + Mood.allCases.map { $0.displayName }
     }
 
+    // MARK: - Derived stats
+    private var totalEntriesToday: Int {
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+        return entries.filter {
+            guard let d = $0.date else { return false }
+            return calendar.isDate(d, inSameDayAs: today)
+        }.count
+    }
+
+    private var mostCommonMood: Mood? {
+        let groups = Dictionary(grouping: entries) { $0.wrappedMood }
+        let sorted = groups.sorted { $0.value.count > $1.value.count }
+        return sorted.first?.key
+    }
+
     var body: some View {
         NavigationView {
-            VStack {
-                // MARK: Mood Filter
-                QuoteBannerView()
-                    .padding(.horizontal)
-                HStack {
-                    Text("Filter by mood:")
-                        .font(.body)
+            ZStack {
+                // Background
+                LinearGradient(
+                    colors: [Color(.systemBackground), Color.blue.opacity(0.06)],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .ignoresSafeArea()
 
-                    Picker("Mood Filter", selection: $filterIndex) {
-                        ForEach(0..<filterOptions.count, id: \.self) { index in
-                            Text(filterOptions[index])
-                                .tag(index)
-                        }
-                    }
-                    .pickerStyle(.menu)
-                }
-                .padding([.top, .horizontal])
+                VStack(spacing: 16) {
 
-                // MARK: List of entries
-                List {
-                    ForEach(filteredEntries(), id: \.objectID) { entry in
-                        NavigationLink(destination: DetailView(entry: entry)) {
-                            LogRowView(entry: entry)
+                    // MARK: Header "dashboard" card
+                    headerCard
+                        .padding(.horizontal)
+
+                    // MARK: Mood filter segmented control
+                    filterBar
+                        .padding(.horizontal)
+
+                    // MARK: Content list
+                    List {
+                        ForEach(filteredEntries(), id: \.objectID) { entry in
+                            NavigationLink(destination: DetailView(entry: entry)) {
+                                LogRowView(entry: entry)
+                                    .listRowSeparator(.hidden)
+                            }
+                            .listRowBackground(Color.clear)
                         }
+                        .onDelete(perform: deleteItems)
                     }
-                    .onDelete(perform: deleteItems)
+                    .listStyle(.plain)
+                    .scrollContentBackground(.hidden)
                 }
-                .listStyle(.plain)
             }
-            .navigationTitle("Daily Logs")
+            .navigationTitle("FoodMood")
             .toolbar {
-                // Add entry
                 ToolbarItem(placement: .navigationBarTrailing) {
                     NavigationLink {
                         AddEntryView()
                     } label: {
-                        Image(systemName: "plus")
+                        Image(systemName: "plus.circle.fill")
+                            .font(.title2)
                     }
                     .accessibilityLabel("Add new entry")
                 }
 
-                // Weekly summary
                 ToolbarItem(placement: .navigationBarLeading) {
                     NavigationLink(destination: WeeklySummaryView()) {
-                        Image(systemName: "chart.bar")
+                        Image(systemName: "chart.bar.doc.horizontal.fill")
+                            .font(.title3)
                     }
                     .accessibilityLabel("Weekly summary")
                 }
@@ -71,17 +92,107 @@ struct DailyLogListView: View {
         }
     }
 
+    // MARK: - Header card
+    private var headerCard: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(Date(), style: .date)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    Text("Your day at a glance")
+                        .font(.title2)
+                        .bold()
+                }
+                Spacer()
+                if let mood = mostCommonMood {
+                    VStack(spacing: 4) {
+                        Text(mood.emoji)
+                            .font(.largeTitle)
+                        Text("Most common mood")
+                            .font(.caption2)
+                            .foregroundColor(.secondary)
+                    }
+                    .padding(10)
+                    .background(.ultraThickMaterial)
+                    .clipShape(RoundedRectangle(cornerRadius: 14))
+                }
+            }
+
+            HStack(spacing: 12) {
+                statPill(
+                    title: "Today’s logs",
+                    value: "\(totalEntriesToday)"
+                )
+                statPill(
+                    title: "Total entries",
+                    value: "\(entries.count)"
+                )
+            }
+        }
+        .padding()
+        .background(
+            RoundedRectangle(cornerRadius: 20)
+                .fill(
+                    LinearGradient(
+                        colors: [Color.blue.opacity(0.15), Color.purple.opacity(0.18)],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+        )
+        .shadow(color: Color.black.opacity(0.08), radius: 12, x: 0, y: 6)
+    }
+
+    private func statPill(title: String, value: String) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(title)
+                .font(.caption)
+                .foregroundColor(.secondary)
+            Text(value)
+                .font(.headline)
+        }
+        .padding(10)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(.ultraThinMaterial)
+        .clipShape(RoundedRectangle(cornerRadius: 14))
+    }
+
+    // MARK: - Filter segmented control
+    private var filterBar: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 8) {
+                ForEach(0..<filterOptions.count, id: \.self) { index in
+                    let isSelected = filterIndex == index
+                    Button {
+                        withAnimation(.spring(response: 0.3, dampingFraction: 0.85)) {
+                            filterIndex = index
+                        }
+                    } label: {
+                        Text(filterOptions[index])
+                            .font(.subheadline)
+                            .padding(.vertical, 6)
+                            .padding(.horizontal, 12)
+                            .background(
+                                Capsule().fill(
+                                    isSelected
+                                    ? Color.accentColor
+                                    : Color(.secondarySystemBackground)
+                                )
+                            )
+                            .foregroundColor(isSelected ? .white : .primary)
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+        }
+    }
+
     // MARK: - Filtering
     private func filteredEntries() -> [LogEntry] {
-        // 0 = All moods
-        guard filterIndex > 0 else {
-            return Array(entries)
-        }
-
+        guard filterIndex > 0 else { return Array(entries) }
         let mood = Mood.allCases[filterIndex - 1]
-        return entries.filter { entry in
-            entry.mood == mood.rawValue
-        }
+        return entries.filter { $0.mood == mood.rawValue }
     }
 
     // MARK: - Delete
