@@ -12,33 +12,63 @@ struct LogRowView: View {
     @ObservedObject var entry: LogEntry
 
     var body: some View {
-        HStack(spacing: 12) {
-            if let data = entry.photo, let ui = UIImage(data: data) {
-                Image(uiImage: ui)
-                    .resizable()
-                    .frame(width: 60, height: 60)
-                    .scaledToFill()
-                    .cornerRadius(8)
-                    .accessibilityLabel("Meal photo row")
-                    .accessibilityAddTraits(.isImage)
-            } else {
-                Rectangle()
-                    .fill(Color.secondary.opacity(0.2))
-                    .frame(width: 60, height: 60)
-                    .cornerRadius(8)
+        ZStack {
+            RoundedRectangle(cornerRadius: 18)
+                .fill(.ultraThinMaterial)
+                .shadow(color: Color.black.opacity(0.06), radius: 8, x: 0, y: 4)
+
+            HStack(spacing: 12) {
+                // Left: image or placeholder
+                if let image = entry.uiImage {
+                    Image(uiImage: image)
+                        .resizable()
+                        .scaledToFill()
+                        .frame(width: 54, height: 54)
+                        .clipShape(RoundedRectangle(cornerRadius: 14))
+                        .accessibilityLabel("Meal photo")
+                        .accessibilityAddTraits(.isImage)
+                } else {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 14)
+                            .fill(Color(.tertiarySystemFill))
+                            .frame(width: 54, height: 54)
+                        Image(systemName: "fork.knife.circle")
+                            .font(.system(size: 22))
+                            .foregroundColor(.secondary)
+                    }
+                }
+
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack {
+                        Text(entry.wrappedMealName.isEmpty ? "Meal" : entry.wrappedMealName)
+                            .font(.headline)
+                            .lineLimit(1)
+                        Spacer()
+                        Text(entry.wrappedMood.emoji)
+                            .font(.title3)
+                    }
+
+                    HStack(spacing: 6) {
+                        Text(entry.wrappedMood.displayName)
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                        Text("• \(entry.calories) kcal")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                    }
+
+                    if let date = entry.date {
+                        Text(DateFormatter.displayFormatter.string(from: date))
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                }
+
+                Spacer()
             }
-            VStack(alignment: .leading) {
-                Text(entry.mealName ?? "Meal")
-                    .font(.headline)
-                Text(entry.mood ?? "Unknown")
-                    .font(.subheadline)
-                Text("\(entry.calories) cal")
-                    .font(.subheadline)
-            }
-            Spacer()
-            Text(entry.date ?? Date(), style: .date)
-                .font(.caption)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 8)
         }
-        .padding(.vertical, 8)
+        .padding(.vertical, 4)
     }
 }
