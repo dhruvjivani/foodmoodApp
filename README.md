@@ -16,6 +16,7 @@ Track daily meals and moods, classify food photos using AI, export entries, and 
     <th>Feature</th>
     <th>Screenshot</th>
   </tr>
+  
   <tr>
     <td><strong>Home / Daily Log List</strong></td>
     <td><img src="foodmood/Images/home.png" width="260"/></td>
