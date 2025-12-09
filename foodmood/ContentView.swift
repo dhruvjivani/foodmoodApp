@@ -1,72 +1,86 @@
 //
 //  ContentView.swift
-//  foodmood
+//  FoodMood
 //
-//  Created by Dhruv Rasikbhai Jivani on 12/8/25.
+//  Created by Dhruv Rasikbhai Jivani on 12/4/25.
 //
 
 import SwiftUI
-import CoreData
+internal import CoreData
 
 struct ContentView: View {
     @Environment(\.managedObjectContext) private var viewContext
 
+    // Fetch all LogEntry objects sorted by date
     @FetchRequest(
-        sortDescriptors: [NSSortDescriptor(keyPath: \Item.timestamp, ascending: true)],
-        animation: .default)
-    private var items: FetchedResults<Item>
+        sortDescriptors: [NSSortDescriptor(keyPath: \LogEntry.date, ascending: false)],
+        animation: .default
+    )
+    private var logEntries: FetchedResults<LogEntry>
 
     var body: some View {
         NavigationView {
             List {
-                ForEach(items) { item in
+                ForEach(logEntries) { entry in
                     NavigationLink {
-                        Text("Item at \(item.timestamp!, formatter: itemFormatter)")
+                        // Navigate to DetailView for each entry
+                        DetailView(entry: entry)
                     } label: {
-                        Text(item.timestamp!, formatter: itemFormatter)
+                        VStack(alignment: .leading) {
+                            Text(entry.wrappedMealName)
+                                .font(.headline)
+                            Text("\(entry.date ?? Date(), formatter: dateFormatter)")
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+                        }
                     }
                 }
-                .onDelete(perform: deleteItems)
+                .onDelete(perform: deleteEntries)
             }
+            .navigationTitle("FoodMood Log")
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     EditButton()
                 }
-                ToolbarItem {
-                    Button(action: addItem) {
-                        Label("Add Item", systemImage: "plus")
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button(action: addEntry) {
+                        Label("Add Entry", systemImage: "plus")
                     }
                 }
             }
-            Text("Select an item")
+
+            Text("Select a log entry")
+                .foregroundColor(.secondary)
         }
     }
 
-    private func addItem() {
+    // Add a new LogEntry
+    private func addEntry() {
         withAnimation {
-            let newItem = Item(context: viewContext)
-            newItem.timestamp = Date()
+            let newEntry = LogEntry(context: viewContext)
+            newEntry.mealName = "New Meal"
+            newEntry.mood = Mood.neutral.rawValue
+            newEntry.calories = 0
+            newEntry.notes = ""
+            newEntry.date = Date()
 
             do {
                 try viewContext.save()
             } catch {
-                // Replace this implementation with code to handle the error appropriately.
-                // fatalError() causes the application to generate a crash log and terminate. You should not use this function in a shipping application, although it may be useful during development.
                 let nsError = error as NSError
                 fatalError("Unresolved error \(nsError), \(nsError.userInfo)")
             }
         }
     }
 
-    private func deleteItems(offsets: IndexSet) {
+    // Delete selected LogEntry objects
+    private func deleteEntries(offsets: IndexSet) {
         withAnimation {
-            offsets.map { items[$0] }.forEach(viewContext.delete)
+            offsets.map { logEntries[$0] }.forEach(viewContext.delete)
 
             do {
                 try viewContext.save()
             } catch {
-                // Replace this implementation with code to handle the error appropriately.
-                // fatalError() causes the application to generate a crash log and terminate. You should not use this function in a shipping application, although it may be useful during development.
                 let nsError = error as NSError
                 fatalError("Unresolved error \(nsError), \(nsError.userInfo)")
             }
@@ -74,13 +88,15 @@ struct ContentView: View {
     }
 }
 
-private let itemFormatter: DateFormatter = {
+// Date formatter for displaying log entry dates
+private let dateFormatter: DateFormatter = {
     let formatter = DateFormatter()
-    formatter.dateStyle = .short
-    formatter.timeStyle = .medium
+    formatter.dateStyle = .medium
+    formatter.timeStyle = .short
     return formatter
 }()
 
 #Preview {
-    ContentView().environment(\.managedObjectContext, PersistenceController.preview.container.viewContext)
+    // Use your actual persistence controller
+    ContentView().environment(\.managedObjectContext, PersistenceController.shared.container.viewContext)
 }
