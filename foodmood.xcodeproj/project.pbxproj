@@ -6,7 +6,12 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		512C6AD72EE7A15E000E9F8C /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = 512C6AD52EE7A159000E9F8C /* README.md */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
+		512C6AD52EE7A159000E9F8C /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		51D1E25F2EE78DD700B6F9B9 /* foodmood.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = foodmood.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -34,6 +39,7 @@
 			children = (
 				51D1E2612EE78DD700B6F9B9 /* foodmood */,
 				51D1E2602EE78DD700B6F9B9 /* Products */,
+				512C6AD52EE7A159000E9F8C /* README.md */,
 			);
 			sourceTree = "<group>";
 		};
@@ -109,6 +115,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				512C6AD72EE7A15E000E9F8C /* README.md in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

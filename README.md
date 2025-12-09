@@ -18,23 +18,23 @@ Track daily meals and moods, classify food photos using AI, export entries, and 
   </tr>
   <tr>
     <td><strong>Home / Daily Log List</strong></td>
-    <td><img src="foodmood/foodmood/Images/home.png" width="260"/></td>
+    <td><img src="foodmood/Images/home.png" width="260"/></td>
   </tr>
   <tr>
     <td><strong>Add Entry Screen</strong></td>
-    <td><img src="foodmood/foodmood/Images/add_entry.png" width="260"/></td>
+    <td><img src="foodmood/Images/add_entry.png" width="260"/></td>
   </tr>
   <tr>
     <td><strong>Entry Detail View</strong></td>
-    <td><img src="foodmood/foodmood/Images/entry.png" width="260"/></td>
+    <td><img src="foodmood/Images/entry.png" width="260"/></td>
   </tr>
   <tr>
     <td><strong>Delete Confirmation Flow</strong></td>
-    <td><img src="foodmood/foodmood/Images/delete.png" width="260"/></td>
+    <td><img src="foodmood/Images/delete.png" width="260"/></td>
   </tr>
   <tr>
     <td><strong>Weekly Summary Report</strong></td>
-    <td><img src="foodmood/foodmood/Images/report.png" width="260"/></td>
+    <td><img src="foodmood/Images/report.png" width="260"/></td>
   </tr>
 </table>
 <hr/>
